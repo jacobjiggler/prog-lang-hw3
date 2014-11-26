@@ -12,4 +12,9 @@ import java.nio.charset.Charset;
 
 behavior Document {
 
+	// Getting the tf value
+    double tf(double value) {
+        return 1 + Math.log10(value);
+    }
+
 }

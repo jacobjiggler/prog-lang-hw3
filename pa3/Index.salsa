@@ -48,7 +48,7 @@ behavior Index {
         workers[i] = new Doc_Reader();
     }
 	
-		// Getting the idf values
+	// Getting the idf values
 	double idf(int value, int N) {
         return Math.log10(((double)(N + 2)) / ((double)(1 + value))); 
     }
