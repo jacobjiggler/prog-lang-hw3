@@ -24,16 +24,16 @@ behavior Index {
         this.worker_num = Integer.parseInt(argv[3]);
 
         // grab all the documents
-        token all_docs = get_docs(argv[0]);
+        token all_docs = create_workers(argv[0]);
 
         // Get all of the tf values
-        token freqs = get_tfs(all_docs);
+        //token freqs = get_tfs(all_docs);
 
         // Compute the idf values for all words read in from the files
-        token idfs = get_idf(freqs);
+        //token idfs = get_idf(freqs);
 
         // Get the output string from the tf and idf values
-        token output = output_terms(idfs, all_docs);
+        //token output = output_terms(idfs, all_docs);
 
         // output the answers
         //write_output(output, argv[1]);
