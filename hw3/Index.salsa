@@ -11,7 +11,7 @@ module hw3;
 
 */
 
-behavior Main {
+behavior Index {
 
    /*
 
