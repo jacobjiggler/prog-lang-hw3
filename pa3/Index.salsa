@@ -14,10 +14,41 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 
 behavior Index {
-
-
 	
-	// Getting the idf values
+	int doc_num;
+	int worker_num;
+
+    void act(String[] argv) {
+        // get number of documents and workers
+        this.doc_num = Integer.parseInt(argv[2]);
+        this.worker_num = Integer.parseInt(argv[3]);
+
+        // grab all the documents
+        token all_docs = get_docs(argv[0]);
+
+        // Get all of the tf values
+        token freqs = get_tfs(all_docs);
+
+        // Compute the idf values for all words read in from the files
+        token idfs = get_idf(freqs);
+
+        // Get the output string from the tf and idf values
+        token output = output_terms(idfs, all_docs);
+
+        // output the answers
+        write_output(output, argv[1]);
+    }
+
+    // Create a new worker for each document
+    Doc_Reader[] create_workers(String folder) {
+
+    // Create the worker objects
+    Doc_Reader[] workers = new Doc_Reader[this.worker_num];
+    for (int i = 0; i < this.worker_num; ++i) {
+        workers[i] = new Doc_Reader();
+    }
+	
+		// Getting the idf values
 	double idf(int value, int N) {
         return Math.log10(((double)(N + 2)) / ((double)(1 + value))); 
     }
@@ -26,7 +57,5 @@ behavior Index {
     double tf(double value) {
         return 1 + Math.log10(value);
     }
-
-
-
+		
 }
