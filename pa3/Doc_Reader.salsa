@@ -10,7 +10,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.Charset;
 
-behavior Document {
+behavior Doc_Reader {
+	int doc_id = 0;
 
 	// Getting the tf value
     double tf(double value) {

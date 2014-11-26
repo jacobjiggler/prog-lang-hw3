@@ -36,7 +36,7 @@ behavior Index {
         token output = output_terms(idfs, all_docs);
 
         // output the answers
-        write_output(output, argv[1]);
+        //write_output(output, argv[1]);
     }
 
     // Create a new worker for each document
@@ -47,15 +47,11 @@ behavior Index {
     for (int i = 0; i < this.worker_num; ++i) {
         workers[i] = new Doc_Reader();
     }
-	
+	return workers;
+	}
+
 	// Getting the idf values
 	double idf(int value, int N) {
         return Math.log10(((double)(N + 2)) / ((double)(1 + value))); 
     }
-	
-	// Getting the tf value
-    double tf(double value) {
-        return 1 + Math.log10(value);
-    }
-		
 }
