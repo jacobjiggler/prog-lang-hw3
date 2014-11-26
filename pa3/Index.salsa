@@ -13,38 +13,38 @@ module pa3;
 
 behavior Index {
 
-   /*
+int doc_num;
+int worker_num;
 
-      The act(...) message handler is invoked by stand-alone
+    void act(String[] argv) {
+        // get number of documents and workers
+        this.doc_num = Integer.parseInt(argv[2]);
+        this.worker_num = Integer.parseInt(argv[3]);
 
-      theatres automatically and is used to bootstrap salsa
+        // grab all the documents
+        token all_docs = get_docs(argv[0]);
 
-      programs.
+        // Get all of the tf values
+        token freqs = get_tfs(all_docs);
 
-   */
+        // Compute the idf values for all words read in from the files
+        token idfs = get_idf(freqs);
 
-   void act( String[] argv ) {
+        // Get the output string from the tf and idf values
+        token output = output_terms(idfs, all_docs);
 
-      standardOutput<-print( "Hello" ) @
+        // output the answers
+        write_output(output, argv[1]);
+    }
 
-      standardOutput<-print( "World!" );
+    // Create a new worker for each document
+    Doc_Reader[] create_workers(String folder) {
 
-   }
-
-   /*
-
-      Notice that the above code is different from
-
-         standardOutput<-print( "Hello" );
-
-         standardOutput<-print( "World!" );
-
-      the code above uses a continuation to insure that the
-
-      world message is sent after the hello message
-
-      completes processing.
-
-   */
+        // Create the worker objects
+        Doc_Reader[] workers = new Doc_Reader[this.worker_num];
+        for (int i = 0; i < this.worker_num; ++i) {
+            workers[i] = new Doc_Reader();
+        }
+		
 
 }
