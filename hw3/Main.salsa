@@ -1,5 +1,5 @@
 
-module demo;
+module hw3;
 
 
 
@@ -11,7 +11,7 @@ module demo;
 
 */
 
-behavior HelloWorld {
+behavior Main {
 
    /*
 
