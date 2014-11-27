@@ -26,11 +26,11 @@ behavior Index {
 		if (doc_num == 0 || worker_num == 0)
 			return;
         // parse docs, get frequencies, and then compute dfs, all concurrently
-        //token all_docs = create_workers(argv[0]);
+        token all_docs = create_workers(argv[0]);
 
 
         // Create a treemap of idfs 
-        token treemap = compute_idf(all_docs);
+        token output = compute_idf(all_docs);
 
         // Grab a super long string of the terms and idfs values
         //token output = output_terms(treemap, all_docs);
@@ -64,7 +64,8 @@ behavior Index {
 		} @  output(token) @ currentContinuation;
 	}
 	//create a treemap of the amount of documents that a word shows up in
-	TreeMap compute_idf(Object[] docs){
+	void compute_idf(Object[] docs){
+		String all_tfidf;
 		TreeMap idfs = new TreeMap();
 		
 	   for (int i = 0; i < docs.length; ++i) {
@@ -78,27 +79,55 @@ behavior Index {
 	
 	Iterator itr = idfs.entrySet().iterator();
 	// Compute idf values from counts
-	while (itr.hasNext()) {
-		Map.Entry entry = (Map.Entry)itr.next();
-		String key = (String)entry.getKey();
-		int count = (int)entry.getValue();
-		//System.out.println(key + " " + count + " " + idf(count, doc_num));
-		idfs.put(key, this.idf(count, doc_num));
+	join {
+		while (itr.hasNext()) {
+			Map.Entry entry = (Map.Entry)itr.next();
+			String key = (String)entry.getKey();
+			int count = (int)entry.getValue();
+			double idf = this.idf(count, doc_num);
+			idfs.put(key, idf);
+			//System.out.println(key + " " + count + " " + idf(count, doc_num));
+			grab_all_listings(idf, key, docs);			
+		} 
+	} @ combine_array(token) @ currentContinuation;
 	}
+	
+	String combine_array(Object[] string_array){
+		StringBuilder loljava = new StringBuilder();//lolololololololololol What is this shit
+		for (int i = 0; i < string_array.length; i++){
+			loljava.append((String)string_array[i]);
+		}
+		return loljava.toString();
+	}
+	void grab_all_listings(double idf, String word, HashMap[] docs){
+		join {
+			for (int i = 0; i < doc_num; i++){
+				Object tf = docs[i].get(word);
+				double answer = 0;
+				if (tf != null)
+					answer = (double)tf;
+					
+				get_tfidf(answer, idf, i);
+			}
+		} @ combine_array(token) @ combine_strings(word, token) @ combine_strings(token, "\n") @ currentContinuation;
+	}
+	String get_tfidf(double tf, double idf, int doc_id){
+        if (tf == 0) {
+            return "";
+        }
 
-	return idfs;
+        return " " + doc_id + " " + String.format("%.4f", tf * idf);
 	
 	}
-	
 	void insert(TreeMap map, String key) {
 	Object count = map.get(key);
 	if (count == null) {
-		map.put(key, new Integer(1));
+		map.put(key, new Double(1));
 	} else {
-		map.put(key, new Integer(((int)count) + 1));
+		map.put(key, new Double(((int)count) + 1));
 	}
 }
-	
+
 	
 	//Why does ithe language require this? I'm not even using the output
 	Object[] output(Object[] input){
