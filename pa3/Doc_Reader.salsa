@@ -1,18 +1,28 @@
 module pa3;
 
+import java.io.InputStreamReader;
+import java.io.FileInputStream;
+import java.nio.charset.Charset;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.HashMap;
 import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.nio.charset.Charset;
 
 behavior Doc_Reader {
 
-	int doc_id = 0;
+	int id_doc = 0;
+	//creates an array of Hashmaps (array index == document id)
+	Hashmap[] word_list = new HashMap[20];
+	
+	
+	
+	void parse_doc(String filename){
+	
+	
+	}
+
 	//
 	void setDocLimit(int limit){
 		HashMap[] freqMap = new HashMap[limit];
@@ -27,4 +37,20 @@ behavior Doc_Reader {
 		doc_id++;
 		return;
 	}
+	
+	// convert tf object to double
+    double get_tf(int doc_id, String input)
+    {
+        Object tf_obj = this.terms_list[doc_id].get(input);
+
+        if (tf_obj == null) {
+            return 0;
+        } else {
+            return (double)tf_obj;
+        }
+    } 
+
+
 }
+
+
