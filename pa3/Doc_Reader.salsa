@@ -11,11 +11,20 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 
 behavior Doc_Reader {
-	int doc_id = 0;
 
+	int doc_id = 0;
+	//
+	void setDocLimit(int limit){
+		HashMap[] freqMap = new HashMap[limit];
+	}
 	// Getting the tf value
     double tf(double value) {
         return 1 + Math.log10(value);
     }
-
+	//parses the doc and adds the words to a new freqmap
+	void parsedoc(String file_name){
+	
+		doc_id++;
+		return;
+	}
 }

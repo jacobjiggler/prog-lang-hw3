@@ -15,27 +15,29 @@ import java.nio.file.StandardOpenOption;
 
 behavior Index {
 	
-	int doc_num;
-	int worker_num;
+	int doc_num = 0;
+	int worker_num = 0;
 
     void act(String[] argv) {
         // get number of documents and workers
         this.doc_num = Integer.parseInt(argv[2]);
         this.worker_num = Integer.parseInt(argv[3]);
 
+		if (doc_num == 0 || worker_num == 0)
+			return;
         // grab all the documents
-        token all_docs = create_workers(argv[0]);
+        token workers = create_workers(argv[0]);
 
-        // Get all of the tf values
-        //token freqs = get_tfs(all_docs);
+        // Create a hashmap of frequencies
+        //token tfs = compute_tfs(workers);
 
-        // Compute the idf values for all words read in from the files
-        //token idfs = get_idf(freqs);
+        // Create a treemap of idfs 
+        //token idfs = compute_idf(freqs);
 
-        // Get the output string from the tf and idf values
+        // Grab a super long string of the terms and idfs values
         //token output = output_terms(idfs, all_docs);
 
-        // output the answers
+        // save to text files
         //write_output(output, argv[1]);
     }
 
@@ -43,13 +45,30 @@ behavior Index {
     Doc_Reader[] create_workers(String folder) {
 
     // Create the worker objects
-    Doc_Reader[] workers = new Doc_Reader[this.worker_num];
-    for (int i = 0; i < this.worker_num; ++i) {
-        workers[i] = new Doc_Reader();
-    }
+		Doc_Reader[] workers = new Doc_Reader[this.worker_num];
+	join {
+		for (int i = 0; i < this.worker_num; ++i) {
+			workers[i] = new Doc_Reader();
+			workers[i] <- setDocLimit(doc_num/worker_num + 1); 
+		}
+	} @ output(token);
+	
+	//loop through both workers and docs distributing the docs between the workers
+	
+	int worker_itr = 0;
+	join{
+		for (int i = 0; i < doc_num; i++){
+			if (worker_itr >= worker_num)
+				worker_itr = 0;
+			workers[worker_itr]<- parsedoc(Paths.get(folder, Integer.toString(i) + ".txt").toString());
+			worker_itr++;
+		}
+	} @  output(token);
 	return workers;
 	}
-
+	Object[] output(Object[] objs){
+		return objs;
+		}
 	// Getting the idf values
 	double idf(int value, int N) {
         return Math.log10(((double)(N + 2)) / ((double)(1 + value))); 
