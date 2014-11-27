@@ -70,7 +70,7 @@ behavior Index {
 	//Why does ithe language require this? I'm not even using the output
 	Object[] output(Object[] objs){
 		return objs;
-		}
+	}
 	// Getting the idf values
 	double idf(int value, int N) {
         return Math.log10(((double)(N + 2)) / ((double)(1 + value))); 
