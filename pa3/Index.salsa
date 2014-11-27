@@ -26,7 +26,7 @@ behavior Index {
 		if (doc_num == 0 || worker_num == 0)
 			return;
         // parse docs, get frequencies, and then compute dfs, all concurrently
-        token all_docs = create_workers(argv[0]);
+        //token all_docs = create_workers(argv[0]);
 
 
         // Create a treemap of idfs 
@@ -82,6 +82,7 @@ behavior Index {
 		Map.Entry entry = (Map.Entry)itr.next();
 		String key = (String)entry.getKey();
 		int count = (int)entry.getValue();
+		//System.out.println(key + " " + count + " " + idf(count, doc_num));
 		idfs.put(key, this.idf(count, doc_num));
 	}
 

@@ -28,29 +28,43 @@ behavior Doc_Reader {
 	    this.freqMaps[doc_id] = new HashMap();
 		try{
 			Charset utf8 = Charset.forName("UTF-8");
-			Reader reader = new InputStreamReader(new FileInputStream(file_name));
-			BufferedReader textReader = new BufferedReader(reader, utf8);
+			InputStreamReader reader = new InputStreamReader(new FileInputStream(file_name), utf8);
+			BufferedReader textReader = new BufferedReader(reader);
+			////BufferedReader textReader = new BufferedReader(new InputStreamReader(new FileInputStream(file_name), utf8));
 			
+			//split the string into individual words to be added to HashMap
 			String line;
 			while((line = textReader.readLine()) != null){
-				String[] arr_word = str.split("\\s+");
-				for(int i = 0; i < arr_word.length(); i++){
-					Integer count = freqMaps[doc_id].get(arr_word[i]);
-					if(count == null){
-						freqMaps[doc_id].put(arr_word[i], 1);
+				String[] arr_word = line.split("\\s+");
+				for(int i = 0; i < arr_word.length; i++){
+					Object obj_count = freqMaps[doc_id].get(arr_word[i]);
+					if(obj_count == null){
+						freqMaps[doc_id].put(arr_word[i], new Integer(1));
 					}
 					else {
-						freqMaps[doc_id].put(arr_word[i], count+1);
+						freqMaps[doc_id].put(arr_word[i], new Integer((int)obj_count) + 1);
 					}
 				}
 			}
+			
+			//change frequency to tf value
+			Iterator it = this.freqMaps[doc_id].entrySet().iterator();
+			while (it.hasNext()) {
+				Map.Entry keyValue = (Map.Entry) it.next();
+				String key = (String)keyValue.getKey();
+				int count = (int)keyValue.getValue();
+				System.out.println(key + " " + count + " " + tf(count));
+				// change freq to tf
+				keyValue.setValue(this.tf(count));
+			}
 			doc_id++;
-			return freqMaps[doc_id - 1];
+			
 		}catch (FileNotFoundException ex) {
-            standardOutput <- print("Failed to open file");
+            standardOutput <- print("Can't open the file");
         } catch (IOException ex) {
-            standardOutput <- print("Failed to read file");
+            standardOutput <- print("Can't read the file");
         }
+		return freqMaps[doc_id - 1];
 	}
 	
 	
