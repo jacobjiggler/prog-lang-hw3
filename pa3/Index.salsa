@@ -28,7 +28,7 @@ behavior Index {
         // grab all the documents
         token workers = create_workers(argv[0]);
 
-        // Create a hashmap of frequencies
+        // compute tfs based on frequency
         //token tfs = compute_tfs(workers);
 
         // Create a treemap of idfs 
@@ -63,9 +63,11 @@ behavior Index {
 			workers[worker_itr]<- parsedoc(Paths.get(folder, Integer.toString(i) + ".txt").toString());
 			worker_itr++;
 		}
-	} @  output(token);
-	return workers;
+	} @  output(token) @ currentContinuation;
 	}
+	
+	
+	//Why does ithe language require this? I'm not even using the output
 	Object[] output(Object[] objs){
 		return objs;
 		}

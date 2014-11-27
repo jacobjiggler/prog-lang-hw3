@@ -12,36 +12,29 @@ import java.io.BufferedReader;
 
 behavior Doc_Reader {
 
-	int id_doc = 0;
-	//creates an array of Hashmaps (array index == document id)
-	Hashmap[] word_list = new HashMap[20];
-	
-	
-	
-	void parse_doc(String filename){
-	
-	
-	}
 
-	//
+	int doc_id = 0;
+	HashMap[] freqMaps;
+	//set array size
 	void setDocLimit(int limit){
-		HashMap[] freqMap = new HashMap[limit];
+		freqMaps = new HashMap[limit];
 	}
 	// Getting the tf value
     double tf(double value) {
         return 1 + Math.log10(value);
     }
 	//parses the doc and adds the words to a new freqmap
-	void parsedoc(String file_name){
-	
+	HashMap parsedoc(String file_name){
+	    this.freqMaps[doc_id] = new HashMap();
+		//scanhere
 		doc_id++;
-		return;
+		return freqMaps[doc_id - 1];
 	}
 	
 	// convert tf object to double
     double get_tf(int doc_id, String input)
     {
-        Object tf_obj = this.terms_list[doc_id].get(input);
+        Object tf_obj = this.freqMaps[doc_id].get(input);
 
         if (tf_obj == null) {
             return 0;
