@@ -25,17 +25,15 @@ behavior Index {
 
 		if (doc_num == 0 || worker_num == 0)
 			return;
-        // grab all the documents
-        token workers = create_workers(argv[0]);
+        // parse docs, get frequencies, and then compute dfs, all concurrently
+        token all_docs = create_workers(argv[0]);
 
-        // compute tfs based on frequency
-        //token tfs = compute_tfs(workers);
 
         // Create a treemap of idfs 
-        //token idfs = compute_idf(freqs);
+        token treemap = compute_idf(all_docs);
 
         // Grab a super long string of the terms and idfs values
-        //token output = output_terms(idfs, all_docs);
+        //token output = output_terms(treemap, all_docs);
 
         // save to text files
         //write_output(output, argv[1]);
@@ -46,31 +44,65 @@ behavior Index {
 
     // Create the worker objects
 		Doc_Reader[] workers = new Doc_Reader[this.worker_num];
-	join {
-		for (int i = 0; i < this.worker_num; ++i) {
-			workers[i] = new Doc_Reader();
-			workers[i] <- setDocLimit(doc_num/worker_num + 1); 
-		}
-	} @ output(token);
+		join {
+			for (int i = 0; i < this.worker_num; ++i) {
+				workers[i] = new Doc_Reader();
+				workers[i] <- setDocLimit(doc_num/worker_num + 1); 
+			}
+		} @ output(token);
 	
 	//loop through both workers and docs distributing the docs between the workers
 	
-	int worker_itr = 0;
-	join{
-		for (int i = 0; i < doc_num; i++){
-			if (worker_itr >= worker_num)
-				worker_itr = 0;
-			workers[worker_itr]<- parsedoc(Paths.get(folder, Integer.toString(i) + ".txt").toString());
-			worker_itr++;
-		}
-	} @  output(token) @ currentContinuation;
+		int worker_itr = 0;
+		join{
+			for (int i = 0; i < doc_num; i++){
+				if (worker_itr >= worker_num)
+					worker_itr = 0;
+				workers[worker_itr]<- parsedoc(Paths.get(folder, Integer.toString(i) + ".txt").toString());
+				worker_itr++;
+			}
+		} @  output(token) @ currentContinuation;
 	}
+	//create a treemap of the amount of documents that a word shows up in
+	TreeMap compute_idf(Object[] docs){
+		TreeMap idfs = new TreeMap();
+		
+	   for (int i = 0; i < docs.length; ++i) {
+		HashMap tfs = (HashMap)docs[i];
+		Iterator itr = tfs.keySet().iterator();
+		while (itr.hasNext()) {
+			String key = (String)itr.next();
+			this.insert(idfs, key); 
+		}
+	}
+	
+	Iterator itr = idfs.entrySet().iterator();
+	// Compute idf values from counts
+	while (itr.hasNext()) {
+		Map.Entry entry = (Map.Entry)itr.next();
+		String key = (String)entry.getKey();
+		int count = (int)entry.getValue();
+		idfs.put(key, this.idf(count, doc_num));
+	}
+
+	return idfs;
+	
+	}
+	
+	void insert(TreeMap map, String key) {
+	Object count = map.get(key);
+	if (count == null) {
+		map.put(key, new Integer(1));
+	} else {
+		map.put(key, new Integer(((int)count) + 1));
+	}
+}
 	
 	
 	//Why does ithe language require this? I'm not even using the output
-	Object[] output(Object[] objs){
-		return objs;
-	}
+	Object[] output(Object[] input){
+		return input;
+		}
 	// Getting the idf values
 	double idf(int value, int N) {
         return Math.log10(((double)(N + 2)) / ((double)(1 + value))); 
