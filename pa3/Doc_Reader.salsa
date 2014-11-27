@@ -26,21 +26,40 @@ behavior Doc_Reader {
 	//parses the doc and adds the words to a new freqmap
 	HashMap parsedoc(String file_name){
 	    this.freqMaps[doc_id] = new HashMap();
-		//scanhere
-		doc_id++;
-		return freqMaps[doc_id - 1];
+		try{
+			Charset utf8 = Charset.forName("UTF-8");
+			Reader reader = new InputStreamReader(new FileInputStream(file_name));
+			BufferedReader textReader = new BufferedReader(reader, utf8);
+			
+			String line;
+			while((line = textReader.readLine()) != null){
+				String[] arr_word = str.split("\\s+");
+				for(int i = 0; i < arr_word.length(); i++){
+					Integer count = freqMaps[doc_id].get(arr_word[i]);
+					if(count == null){
+						freqMaps[doc_id].put(arr_word[i], 1);
+					}
+					else {
+						freqMaps[doc_id].put(arr_word[i], count+1);
+					}
+				}
+			}
+			doc_id++;
+			return freqMaps[doc_id - 1];
+		}catch (FileNotFoundException ex) {
+            standardOutput <- print("Failed to open file");
+        } catch (IOException ex) {
+            standardOutput <- print("Failed to read file");
+        }
 	}
 	
-	// convert tf object to double
+	
+	// Get tf from hash map
     double get_tf(int doc_id, String input)
     {
         Object tf_obj = this.freqMaps[doc_id].get(input);
-
-        if (tf_obj == null) {
-            return 0;
-        } else {
-            return (double)tf_obj;
-        }
+        if (tf_obj == null) return 0;
+		return (double)tf_obj;
     } 
 
 
