@@ -66,7 +66,7 @@ behavior Index {
 	//create a treemap of the amount of documents that a word shows up in
 	void compute_idf(Object[] docs){
 		String all_tfidf;
-		TreeMap idfs = new TreeMap();
+		TreeMap idfs = new TreeMap();	
 		
 	   for (int i = 0; i < docs.length; ++i) {
 		HashMap tfs = (HashMap)docs[i];
@@ -120,19 +120,19 @@ behavior Index {
 	
 	}
 	void insert(TreeMap map, String key) {
-	Object count = map.get(key);
-	if (count == null) {
-		map.put(key, new Double(1));
-	} else {
-		map.put(key, new Double(((int)count) + 1));
-	}
+		Object count = map.get(key);
+		if (count == null) {
+			map.put(key, new Integer(1));
+		} else {
+			map.put(key, new Integer((int)count) + 1);
+		}
 }
 
 	
 	//Why does ithe language require this? I'm not even using the output
 	Object[] output(Object[] input){
 		return input;
-		}
+	}
 	// Getting the idf values
 	double idf(int value, int N) {
         return Math.log10(((double)(N + 2)) / ((double)(1 + value))); 

@@ -53,7 +53,7 @@ behavior Doc_Reader {
 				Map.Entry keyValue = (Map.Entry) it.next();
 				String key = (String)keyValue.getKey();
 				int count = (int)keyValue.getValue();
-				System.out.println(key + " " + count + " " + tf(count));
+				//System.out.println(key + " " + count + " " + tf(count));
 				// change freq to tf
 				keyValue.setValue(this.tf(count));
 			}
