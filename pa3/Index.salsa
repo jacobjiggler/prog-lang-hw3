@@ -28,16 +28,11 @@ behavior Index {
         // parse docs, get frequencies, and then compute dfs, all concurrently
         token all_docs = create_workers(argv[0]);
 
-
         // Create a treemap of idfs 
         token output = compute_idf(all_docs);
-		//System.out.println(ouput);
-
-        // Grab a super long string of the terms and idfs values
-        //token output = output_terms(treemap, all_docs);
 
         // save to text files
-        //write_output(output, argv[1]);
+        create_output(output, argv[1]);
     }
 
     // Create a new worker for each document
@@ -64,6 +59,7 @@ behavior Index {
 			}
 		} @  output(token) @ currentContinuation;
 	}
+	
 	//create a treemap of the amount of documents that a word shows up in
 	String compute_idf(Object[] docs){
 		String all_tfidf;
@@ -113,6 +109,7 @@ behavior Index {
 			loljava.append("\n");
 			return loljava.toString();
 	}
+	
 	String get_tfidf(double tf, double idf, int doc_id){
         if (tf == 0) {
             return "";
@@ -121,6 +118,7 @@ behavior Index {
         return " " + doc_id + " " + String.format("%.4f", tf * idf);
 	
 	}
+	
 	void insert(TreeMap map, String key) {
 		Object count = map.get(key);
 		if (count == null) {
@@ -128,7 +126,7 @@ behavior Index {
 		} else {
 			map.put(key, new Integer((int)count) + 1);
 		}
-}
+	}
 
 	
 	//Why does ithe language require this? I'm not even using the output
@@ -143,14 +141,14 @@ behavior Index {
 	
 void create_output(String output, String output_place) {
         Charset utf8 = Charset.forName("UTF-8");
-        BufferedWriter b_writer = null;
-
         String cur_char = "";
         String[] lines = output.split("\n");
+		BufferedWriter b_writer = null;
 
         for (int i = 0; i < lines.length; i++) {
             String first_char = String.valueOf(lines[i].charAt(0));
-
+			
+			//if the first character does not equal to the current character
             if (!first_char.equals(cur_char)) {
                 if (b_writer != null) {
                     try {
@@ -160,13 +158,14 @@ void create_output(String output, String output_place) {
                         System.err.format("IOException: %s%n", e);
                     }
                 }
-
+				
+				//create the file document
                 Path filepath = Paths.get(output_place, first_char + ".txt");
-                File f = filepath.toFile();
-                f.getParentFile().mkdirs();
+                File file = filepath.toFile();
+                file.getParentFile().mkdirs();
                 try {
-                    f.delete();
-                    f.createNewFile();
+                    file.delete();
+                    file.createNewFile();
                     b_writer = Files.newBufferedWriter(filepath, utf8, StandardOpenOption.APPEND);
                 } catch (IOException e) {
                     System.err.format("IOException: %s%n", e);
