@@ -31,7 +31,6 @@ behavior Index {
 
         // Create a treemap of idfs 
         token output = compute_idf(all_docs);
-		//System.out.println(ouput);
 
         // Grab a super long string of the terms and idfs values
         //token output = output_terms(treemap, all_docs);
@@ -65,54 +64,55 @@ behavior Index {
 		} @  output(token) @ currentContinuation;
 	}
 	//create a treemap of the amount of documents that a word shows up in
-	String compute_idf(Object[] docs){
+	void compute_idf(Object[] docs){
 		String all_tfidf;
 		TreeMap idfs = new TreeMap();	
 		
 	   for (int i = 0; i < docs.length; ++i) {
-		HashMap tfs = (HashMap)docs[i];
-		Iterator itr = tfs.keySet().iterator();
-		while (itr.hasNext()) {
-			String key = (String)itr.next();
-			this.insert(idfs, key); 
+			HashMap tfs = (HashMap)docs[i];
+			Iterator itr = tfs.keySet().iterator();
+			while (itr.hasNext()) {
+				String key = (String)itr.next();
+				this.insert(idfs, key); 
+			}
 		}
-
+	
+		Iterator itr = idfs.entrySet().iterator();
+		// Compute idf values from counts
+		join {
+			while (itr.hasNext()) {
+				Map.Entry entry = (Map.Entry)itr.next();
+				String key = (String)entry.getKey();
+				int count = (int)entry.getValue();
+				double idf = this.idf(count, doc_num);
+				idfs.put(key, idf);
+				//System.out.println(key + " " + count + " " + idf(count, doc_num));
+				grab_all_listings(idf, key, docs);			
+			} 
+		} @ combine_array(token) @ currentContinuation;
 	}
 	
-	Iterator itr = idfs.entrySet().iterator();
-	// Compute idf values from counts
-
-		StringBuilder loljava = new StringBuilder();
-		while (itr.hasNext()) {
-			Map.Entry entry = (Map.Entry)itr.next();
-			String key = (String)entry.getKey();
-			int count = (int)entry.getValue();
-			idfs.put(key, this.idf(count, doc_num));
-			double idf = (double)entry.getValue();   
-			System.out.println(grab_all_listings(idf, key, docs));			
-			loljava.append(grab_all_listings(idf, key, docs));	
+	String combine_array(Object[] string_array){
+		StringBuilder loljava = new StringBuilder();//lolololololololololol What is this shit
+		for (int i = 0; i < string_array.length; i++){
+			loljava.append((String)string_array[i]);
 		}
-
 		return loljava.toString();
 	}
 	
-	String grab_all_listings(double idf, String word, Object[] docs){
-		//System.out.println("bb");
-		StringBuilder loljava = new StringBuilder();
-		loljava.append(word);
+	void grab_all_listings(double idf, String word, HashMap[] docs){
+		join {
 			for (int i = 0; i < doc_num; i++){
-				HashMap temp = (HashMap)docs[i];
-				//System.out.println("aaa");
-				Object tf = temp.get(word);
+				Object tf = docs[i].get(word);
 				double answer = 0;
 				if (tf != null)
 					answer = (double)tf;
 					
-				loljava.append(get_tfidf(answer, idf, i));
+				get_tfidf(answer, idf, i);
 			}
-			loljava.append("\n");
-			return loljava.toString();
+		} @ combine_array(token) @ combine_strings(word, token) @ combine_strings(token, "\n") @ currentContinuation;
 	}
+	
 	String get_tfidf(double tf, double idf, int doc_id){
         if (tf == 0) {
             return "";
@@ -131,12 +131,62 @@ behavior Index {
 }
 
 	
-	//Why does ithe language require this? I'm not even using the output
+	//Why does the language require this? I'm not even using the output
 	Object[] output(Object[] input){
 		return input;
 	}
 	// Getting the idf values
 	double idf(int value, int N) {
         return Math.log10(((double)(N + 2)) / ((double)(1 + value))); 
+    }
+	
+void create_output(String output, String output_place) {
+        Charset utf8 = Charset.forName("UTF-8");
+        BufferedWriter b_writer = null;
+
+        String cur_char = "";
+        String[] lines = output.split("\n");
+
+        for (int i = 0; i < lines.length; i++) {
+            String first_char = String.valueOf(lines[i].charAt(0));
+
+            if (!first_char.equals(cur_char)) {
+                if (b_writer != null) {
+                    try {
+                        b_writer.write("\n", 0, 1);
+                        b_writer.close();
+                    } catch (IOException e) {
+                        System.err.format("IOException: %s%n", e);
+                    }
+                }
+
+                Path filepath = Paths.get(output_dir, first_char + ".txt");
+                File f = filepath.toFile();
+                f.getParentFile().mkdirs();
+                try {
+                    f.delete();
+                    f.createNewFile();
+                    b_writer = Files.newBufferedWriter(filepath, utf8, StandardOpenOption.APPEND);
+                } catch (IOException e) {
+                    System.err.format("IOException: %s%n", e);
+                }
+
+                cur_char = first_char;
+            }
+
+            try {
+                b_writer.write(lines[i], 0, lines[i].length());
+                b_writer.write("\n", 0, 1);
+            } catch (IOException x) {
+                System.err.format("IOException: %s%n", x);
+            }
+        }
+
+        try {
+            b_writer.write("\n", 0, 1);
+            b_writer.close();
+        } catch (IOException e) {
+            System.err.format("IOException: %s%n", e);
+        }
     }
 }
