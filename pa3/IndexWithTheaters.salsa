@@ -1,0 +1,220 @@
+
+module pa3;
+
+import java.util.HashMap;
+import java.util.TreeMap;
+import java.util.Iterator;
+import java.util.Vector;
+import java.util.Map;
+import java.nio.charset.Charset;
+import java.io.BufferedWriter;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.nio.file.Files;
+import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.LinkedList;
+import java.util.ListIterator;
+
+behavior IndexWithTheaters {
+	String theaters_file;
+	int doc_num = 0;
+	int worker_num = 0;
+
+    void act(String[] argv) {
+        // get number of documents and workers
+        this.doc_num = Integer.parseInt(argv[2]);
+        this.worker_num = Integer.parseInt(argv[3]);
+		this.theaters_file = argv[4];
+
+		if (doc_num == 0 || worker_num == 0)
+			return;
+        // parse docs, get frequencies, and then compute dfs, all concurrently
+        token all_docs = create_workers(argv[0]);
+
+
+        // Create a treemap of idfs 
+        token output = compute_idf(all_docs);
+
+
+
+
+        // save to text files
+        create_output(output, argv[1]);
+    }
+
+    // Create a new worker for each document
+    Doc_Reader[] create_workers(String folder) {
+		Vector theaterlist = new Vector();
+		String nameserver = "";
+		String theater = "";
+
+		
+		try {
+            BufferedReader input = new BufferedReader(new FileReader(this.theaters_file));
+            
+            nameserver = input.readLine();
+		while ((theater = input.readLine())!= null){
+                theaterlist.add(theater);
+            }
+            input.close(); 
+        } catch (IOException ioe){
+            standardOutput<-println("[error] Can't open the file " + this.theaters_file + " for reading.");
+        }
+    // Create the worker objects
+		Doc_Reader[] workers = new Doc_Reader[this.worker_num];
+
+			for (int i = 0; i < this.worker_num; ++i) {
+				workers[i] = new Doc_Reader()
+					at (new UAN("uan://" + nameserver + "/a" + i),
+						new UAL("rmsp://"+theaterlist.get(i%theaterlist.size())+"/a"+i));
+
+			}
+
+	
+	//loop through both workers and docs distributing the docs between the workers
+	
+		int worker_itr = 0;
+		join{
+			for (int i = 0; i < doc_num; i++){
+				if (worker_itr >= worker_num)
+					worker_itr = 0;
+				workers[worker_itr]<- parsedoc(Paths.get(folder, Integer.toString(i) + ".txt").toString());
+				worker_itr++;
+			}
+		} @  output(token) @ currentContinuation;
+	}
+	
+	//create a treemap of the amount of documents that a word shows up in
+	String compute_idf(Object[] docs){
+		String all_tfidf;
+		TreeMap idfs = new TreeMap();	
+		
+	   for (int i = 0; i < docs.length; ++i) {
+		HashMap tfs = (HashMap)docs[i];
+		Iterator itr = tfs.keySet().iterator();
+		while (itr.hasNext()) {
+			String key = (String)itr.next();
+			this.insert(idfs, key); 
+		}
+
+	}
+	
+	Iterator itr = idfs.entrySet().iterator();
+	// Compute idf values from counts
+
+		StringBuilder loljava = new StringBuilder();
+		while (itr.hasNext()) {
+			Map.Entry entry = (Map.Entry)itr.next();
+			String key = (String)entry.getKey();
+			int count = (int)entry.getValue();
+			idfs.put(key, this.idf(count, doc_num));
+			double idf = (double)entry.getValue();   
+			//System.out.println(grab_all_listings(idf, key, docs));			
+			loljava.append(grab_all_listings(idf, key, docs));	
+		}
+
+		return loljava.toString();
+	}
+	
+	String grab_all_listings(double idf, String word, Object[] docs){
+		//System.out.println("bb");
+		StringBuilder loljava = new StringBuilder();
+		loljava.append(word);
+			for (int i = 0; i < doc_num; i++){
+				HashMap temp = (HashMap)docs[i];
+				//System.out.println("aaa");
+				Object tf = temp.get(word);
+				double answer = 0;
+				if (tf != null)
+					answer = (double)tf;
+					
+				loljava.append(get_tfidf(answer, idf, i));
+			}
+			loljava.append("\n");
+			return loljava.toString();
+	}
+	
+	String get_tfidf(double tf, double idf, int doc_id){
+        if (tf == 0) {
+            return "";
+        }
+
+        return " " + doc_id + " " + String.format("%.4f", tf * idf);
+	
+	}
+	
+	void insert(TreeMap map, String key) {
+		Object count = map.get(key);
+		if (count == null) {
+			map.put(key, new Integer(1));
+		} else {
+			map.put(key, new Integer((int)count) + 1);
+		}
+	}
+
+	
+	//Why does ithe language require this? I'm not even using the output
+	Object[] output(Object[] input){
+		return input;
+	}
+	// Getting the idf values
+	double idf(int value, int N) {
+        return Math.log10(((double)(N + 2)) / ((double)(1 + value))); 
+    }
+
+	
+void create_output(String output, String output_place) {
+        Charset utf8 = Charset.forName("UTF-8");
+        String cur_char = "";
+        String[] lines = output.split("\n");
+		BufferedWriter b_writer = null;
+
+        for (int i = 0; i < lines.length; i++) {
+            String first_char = String.valueOf(lines[i].charAt(0));
+			
+			//if the first character does not equal to the current character
+            if (!first_char.equals(cur_char)) {
+                if (b_writer != null) {
+                    try {
+                        b_writer.write("\n", 0, 1);
+                        b_writer.close();
+                    } catch (IOException e) {
+                        System.err.format("IOException: %s%n", e);
+                    }
+                }
+				
+				//create the file document
+                Path filepath = Paths.get(output_place, first_char + ".txt");
+                File file = filepath.toFile();
+                file.getParentFile().mkdirs();
+                try {
+                    file.delete();
+                    file.createNewFile();
+                    b_writer = Files.newBufferedWriter(filepath, utf8, StandardOpenOption.APPEND);
+                } catch (IOException e) {
+                    System.err.format("IOException: %s%n", e);
+                }
+
+                cur_char = first_char;
+            }
+
+            try {
+                b_writer.write(lines[i], 0, lines[i].length());
+                b_writer.write("\n", 0, 1);
+            } catch (IOException x) {
+                System.err.format("IOException: %s%n", x);
+            }
+        }
+
+        try {
+            b_writer.write("\n", 0, 1);
+            b_writer.close();
+        } catch (IOException e) {
+            System.err.format("IOException: %s%n", e);
+        }
+    }
+
+}
