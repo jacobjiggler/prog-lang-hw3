@@ -160,7 +160,7 @@ void create_output(String output, String output_place) {
                     }
                 }
 
-                Path filepath = Paths.get(output_dir, first_char + ".txt");
+                Path filepath = Paths.get(output_place, first_char + ".txt");
                 File f = filepath.toFile();
                 f.getParentFile().mkdirs();
                 try {
