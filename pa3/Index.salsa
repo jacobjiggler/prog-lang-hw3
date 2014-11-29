@@ -85,7 +85,7 @@ behavior Index {
 			int count = (int)entry.getValue();
 			idfs.put(key, this.idf(count, doc_num));
 			double idf = (double)entry.getValue();   
-			System.out.println(grab_all_listings(idf, key, docs));			
+			//System.out.println(grab_all_listings(idf, key, docs));			
 			loljava.append(grab_all_listings(idf, key, docs));	
 		}
 
