@@ -31,6 +31,7 @@ behavior Index {
 
         // Create a treemap of idfs 
         token output = compute_idf(all_docs);
+		//System.out.println(ouput);
 
         // Grab a super long string of the terms and idfs values
         //token output = output_terms(treemap, all_docs);
@@ -64,7 +65,7 @@ behavior Index {
 		} @  output(token) @ currentContinuation;
 	}
 	//create a treemap of the amount of documents that a word shows up in
-	void compute_idf(Object[] docs){
+	String compute_idf(Object[] docs){
 		String all_tfidf;
 		TreeMap idfs = new TreeMap();	
 		
@@ -75,41 +76,42 @@ behavior Index {
 			String key = (String)itr.next();
 			this.insert(idfs, key); 
 		}
+
 	}
 	
 	Iterator itr = idfs.entrySet().iterator();
 	// Compute idf values from counts
-	join {
+
+		StringBuilder loljava = new StringBuilder();
 		while (itr.hasNext()) {
 			Map.Entry entry = (Map.Entry)itr.next();
 			String key = (String)entry.getKey();
 			int count = (int)entry.getValue();
-			double idf = this.idf(count, doc_num);
-			idfs.put(key, idf);
-			//System.out.println(key + " " + count + " " + idf(count, doc_num));
-			grab_all_listings(idf, key, docs);			
-		} 
-	} @ combine_array(token) @ currentContinuation;
-	}
-	
-	String combine_array(Object[] string_array){
-		StringBuilder loljava = new StringBuilder();//lolololololololololol What is this shit
-		for (int i = 0; i < string_array.length; i++){
-			loljava.append((String)string_array[i]);
+			idfs.put(key, this.idf(count, doc_num));
+			double idf = (double)entry.getValue();   
+			System.out.println(grab_all_listings(idf, key, docs));			
+			loljava.append(grab_all_listings(idf, key, docs));	
 		}
+
 		return loljava.toString();
 	}
-	void grab_all_listings(double idf, String word, HashMap[] docs){
-		join {
+	
+	String grab_all_listings(double idf, String word, Object[] docs){
+		//System.out.println("bb");
+		StringBuilder loljava = new StringBuilder();
+		loljava.append(word);
 			for (int i = 0; i < doc_num; i++){
-				Object tf = docs[i].get(word);
+				HashMap temp = (HashMap)docs[i];
+				//System.out.println("aaa");
+				Object tf = temp.get(word);
 				double answer = 0;
 				if (tf != null)
 					answer = (double)tf;
 					
-				get_tfidf(answer, idf, i);
+				loljava.append(get_tfidf(answer, idf, i));
 			}
-		} @ combine_array(token) @ combine_strings(word, token) @ combine_strings(token, "\n") @ currentContinuation;
+			loljava.append("\n");
+			return loljava.toString();
 	}
 	String get_tfidf(double tf, double idf, int doc_id){
         if (tf == 0) {
