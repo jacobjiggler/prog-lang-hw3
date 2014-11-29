@@ -14,11 +14,9 @@ behavior Doc_Reader {
 
 
 	int doc_id = 0;
-	HashMap[] freqMaps;
 	//set array size
-	void setDocLimit(int limit){
-		freqMaps = new HashMap[limit];
-	}
+	HashMap[] freqMaps = new HashMap[15];
+
 	// Getting the tf value
     double tf(double value) {
         return 1 + Math.log10(value);

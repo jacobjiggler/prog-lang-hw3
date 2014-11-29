@@ -40,12 +40,11 @@ behavior Index {
 
     // Create the worker objects
 		Doc_Reader[] workers = new Doc_Reader[this.worker_num];
-		join {
 			for (int i = 0; i < this.worker_num; ++i) {
 				workers[i] = new Doc_Reader();
-				workers[i] <- setDocLimit(doc_num/worker_num + 1); 
+
 			}
-		} @ output(token);
+
 	
 	//loop through both workers and docs distributing the docs between the workers
 	
